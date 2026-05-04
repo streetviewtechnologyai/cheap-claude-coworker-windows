@@ -156,14 +156,14 @@ Add `CLAUDE.md` to your repository so Claude Code loads it automatically on star
 | 3-week worker API cost | — | $0.38 total |
 | Context window usage | 80% reading files | 20% reading summaries |
 
-Based on the pattern described in [this implementation](https://medium.com/@kunalbhardwaj) (567K views Reddit, 7.2K Medium).
+Based on the pattern described in [this implementation (medium link)](https://medium.com/@kunalbhardwaj598/i-was-burning-through-claude-codes-weekly-limit-in-3-days-here-s-how-i-fixed-it-0344c555abda) [Reddit link](https://www.reddit.com/r/ClaudeAI/comments/1t1o43w/i_gave_claude_code_a_002call_coworker_and_stopped/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) (567K views Reddit, 7.2K Medium).
 
 ## Author
 
 **Kunal Bhardwaj** — Systems engineer working on autonomous drones and AI-powered developer tools. Building at the intersection of embedded systems and LLM workflows.
 
-- Blog: [medium.com/@kunalbhardwaj](https://medium.com/@kunalbhardwaj)
-- LinkedIn: [linkedin.com/in/kunalbhardwaj](https://linkedin.com/in/kunalbhardwaj)
+- Blog: [medium.com/@kunalbhardwaj](https://medium.com/@kunalbhardwaj598/i-was-burning-through-claude-codes-weekly-limit-in-3-days-here-s-how-i-fixed-it-0344c555abda)
+- LinkedIn: [linkedin.com/in/kunalbhardwaj](https://www.linkedin.com/in/kunal-bhardwaj-61433818b)
 
 ## Contributing
 
