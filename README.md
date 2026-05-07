@@ -18,7 +18,7 @@ boilerplate generation, and doc updates. Worker calls cost ~$0.02; primary model
 
 ## Quick Start (Windows 11)
 
-Run from a normal PowerShell window (not Claude Code Desktop's sandboxed shell):
+Run from a normal PowerShell window:
 
 ```powershell
 git clone https://github.com/imkunal007219/claude-coworker-model.git
