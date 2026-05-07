@@ -1,32 +1,53 @@
 #!/usr/bin/env python3
-"""Delegate boilerplate generation to Kimi K2.5.
+"""Delegate boilerplate generation to the worker model.
 
-Kimi K2.5 is a thinking model — it uses reasoning tokens internally.
-max-tokens must be high enough to cover both reasoning + output code.
+The active worker provider is configured in config.py (ACTIVE_PROVIDER) and can
+be switched with `coworker-config use <name>` or by setting WORKER_PROVIDER.
+max-tokens must cover both reasoning + output for thinking models.
 """
-import argparse, os, sys, pathlib
-from openai import OpenAI
+import argparse
+import pathlib
+import sys
 
-client = OpenAI(
-    api_key=os.environ.get("WORKER_API_KEY", os.environ.get("MOONSHOT_API_KEY", "")),
-    base_url=os.environ.get("WORKER_BASE_URL", "https://api.moonshot.ai/v1"),
-)
+_ROOT = pathlib.Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
-p = argparse.ArgumentParser(description="Ask Kimi to generate code/docs")
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, OSError):
+        pass
+
+import config as worker_config  # noqa: E402
+from openai import OpenAI  # noqa: E402
+
+p = argparse.ArgumentParser(description="Ask the worker model to generate code/docs")
 p.add_argument("--spec", required=True, help="What to write")
 p.add_argument("--context", help="Optional reference file for style/imports")
 p.add_argument("--target", required=True, help="Output file path")
 p.add_argument("--max-tokens", type=int, default=16384,
                help="Total token budget (reasoning + output)")
-p.add_argument("--model", default=os.environ.get("WORKER_MODEL", "kimi-k2.5"))
+p.add_argument("--provider", default=None,
+               help="Provider name from config.py (overrides ACTIVE_PROVIDER)")
+p.add_argument("--model", default=None, help="Override model id")
 args = p.parse_args()
+
+cfg = worker_config.resolve(args.provider)
+if not cfg["api_key"]:
+    sys.exit(
+        f"[error] No API key for provider {cfg['name']!r}. "
+        f"Set the 'api_key' field in config.py."
+    )
+
+client = OpenAI(api_key=cfg["api_key"], base_url=cfg["base_url"])
 
 ctx = ""
 if args.context:
-    ctx = f"<reference>\n{pathlib.Path(args.context).read_text()}\n</reference>\n"
+    ctx = f"<reference>\n{pathlib.Path(args.context).read_text(errors='replace')}\n</reference>\n"
 
 resp = client.chat.completions.create(
-    model=args.model,
+    model=args.model or cfg["model"],
     messages=[
         {"role": "system", "content": (
             "Generate clean, idiomatic code matching the style of any "
@@ -40,20 +61,19 @@ resp = client.chat.completions.create(
 
 content = resp.choices[0].message.content
 if not content:
-    print("[ERROR: Kimi ran out of tokens during reasoning. "
+    print("[ERROR: worker ran out of tokens during reasoning. "
           "Try --max-tokens 32768]", file=sys.stderr)
     sys.exit(1)
 
-# Strip accidental markdown fences if Kimi adds them
 if content.startswith("```"):
     content = content.split("\n", 1)[1].rsplit("```", 1)[0]
 
-with open(args.target, "w") as f:
+with open(args.target, "w", encoding="utf-8") as f:
     f.write(content)
 
 print(f"Wrote {args.target} ({len(content)} chars)")
 u = resp.usage
 cached = getattr(getattr(u, 'prompt_tokens_details', None), 'cached_tokens', 0) or 0
-print(f"[kimi: {u.prompt_tokens} in ({cached} cached) / "
+print(f"[{cfg['name']}: {u.prompt_tokens} in ({cached} cached) / "
       f"{u.completion_tokens} out | finish: {resp.choices[0].finish_reason}]",
       file=sys.stderr)
