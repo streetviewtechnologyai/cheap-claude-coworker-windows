@@ -55,6 +55,12 @@ Write-Host "[3/5] Installing dependencies..."
 & $VenvPython -m pip install --quiet --upgrade pip
 & $VenvPython -m pip install --quiet -r (Join-Path $ScriptDir "requirements.txt")
 if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
+$monitorReq = Join-Path $ScriptDir "requirements-monitor.txt"
+if (Test-Path $monitorReq) {
+    Write-Host "      installing token-monitor deps (PySide6, requests)..."
+    & $VenvPython -m pip install --quiet -r $monitorReq
+    if ($LASTEXITCODE -ne 0) { throw "monitor pip install failed" }
+}
 
 # 4. Create .cmd shims
 Write-Host ("[4/5] Installing .cmd shims to " + $BinDir + " ...")
@@ -72,6 +78,13 @@ foreach ($tool in $tools) {
     Set-Content -Path $shim -Value $body -Encoding ASCII -NoNewline
     Write-Host ("      installed " + $tool + ".cmd")
 }
+
+# 4b. token-monitor shim (launches the tray app from the venv)
+$VenvPyW = Join-Path $VenvDir "Scripts\pythonw.exe"
+$monitorShim = Join-Path $BinDir "token-monitor.cmd"
+$monitorBody = "@echo off`r`nstart `"`" `"" + $VenvPyW + "`" -m monitor`r`n"
+Set-Content -Path $monitorShim -Value $monitorBody -Encoding ASCII -NoNewline
+Write-Host "      installed token-monitor.cmd"
 
 # 5. PATH check
 Write-Host "[5/5] Checking PATH..."

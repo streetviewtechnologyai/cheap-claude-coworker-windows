@@ -79,3 +79,4 @@ cached = getattr(getattr(u, 'prompt_tokens_details', None), 'cached_tokens', 0) 
 print(f"\n[{cfg['name']}: {u.prompt_tokens} in ({cached} cached) / "
       f"{u.completion_tokens} out | finish: {resp.choices[0].finish_reason}]",
       file=sys.stderr)
+worker_config.log_usage(cfg, "ask", u, resp.choices[0].finish_reason)
