@@ -9,13 +9,13 @@ PROVIDERS = {
         "label": "DeepSeek V4 Flash",
         "base_url": "https://api.deepseek.com",
         "model": "deepseek-v4-flash",
-        "api_key": "***REDACTED***",
+        "api_key": "",
     },
     "deepseek-v4-pro": {
         "label": "DeepSeek V4 Pro",
         "base_url": "https://api.deepseek.com",
         "model": "deepseek-v4-pro",
-        "api_key": "***REDACTED***",
+        "api_key": "",
     },
     "kimi": {
         "label": "Kimi (Moonshot AI)",
