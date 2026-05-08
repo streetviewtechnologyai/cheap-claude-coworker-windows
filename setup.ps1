@@ -60,7 +60,7 @@ if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
 Write-Host ("[4/5] Installing .cmd shims to " + $BinDir + " ...")
 if (-not (Test-Path $BinDir)) { New-Item -ItemType Directory -Path $BinDir | Out-Null }
 
-$tools = @("ask-kimi", "kimi-write", "extract-chat", "coworker-config")
+$tools = @("ask", "write", "extract-chat", "coworker-config")
 foreach ($tool in $tools) {
     $toolPath = Join-Path $ScriptDir ("tools\" + $tool)
     if (-not (Test-Path $toolPath)) {
@@ -101,6 +101,6 @@ Write-Host "     (Or keep using WORKER_API_KEY as a generic override.)"
 Write-Host "  2. Open a new terminal, then try:"
 Write-Host "       coworker-config list"
 Write-Host "       coworker-config show"
-Write-Host "       ask-kimi --paths setup.ps1 --question can-you-summarize"
+Write-Host "       ask --paths setup.ps1 --question can-you-summarize"
 Write-Host ""
 Write-Host "Switch providers with:  coworker-config use deepseek-v4-pro"

@@ -4,7 +4,7 @@
 Usage:
   extract-chat <session.jsonl>                    # print to stdout
   extract-chat <session.jsonl> -o chat.txt        # write to file
-  extract-chat <session.jsonl> | ask-kimi ...     # pipe to kimi
+  extract-chat <session.jsonl> | ask ...          # pipe to worker
 
 Extracts only user and assistant TEXT messages. Strips:
   - Tool calls, tool results, system prompts

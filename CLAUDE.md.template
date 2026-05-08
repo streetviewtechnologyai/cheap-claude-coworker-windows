@@ -2,21 +2,21 @@
 
 Three CLI tools delegate bulk I/O to a cheap worker model. Use them to save tokens.
 
-### ask-kimi — bulk reading
+### ask — bulk reading
 For reading files >400 lines, or when you'd otherwise read 3+ files:
 
 ```bash
-ask-kimi --paths <file1> <file2>... --question "<specific question>"
+ask --paths <file1> <file2>... --question "<specific question>"
 ```
 
 Returns a structured summary. Use that instead of reading files yourself.
 Only read files directly when you need to make edits to specific lines.
 
-### kimi-write — boilerplate generation
+### write — boilerplate generation
 For generating tests, config files, docstrings, or repetitive code patterns:
 
 ```bash
-kimi-write --spec "<what to write>" --context <existing-similar-file> --target <output-path>
+write --spec "<what to write>" --context <existing-similar-file> --target <output-path>
 ```
 
 Then review the output and edit only what needs fixing.
@@ -33,7 +33,7 @@ extract-chat <session.jsonl> -o /tmp/chat.txt
 
 1. Extract chat: `extract-chat <latest-session.jsonl> -o /tmp/chat.txt`
 2. Ask worker to read chat + existing docs and suggest updates:
-   `ask-kimi --paths /tmp/chat.txt <doc-files> --question "read chat, give exact changes for docs"`
+   `ask --paths /tmp/chat.txt <doc-files> --question "read chat, give exact changes for docs"`
 3. Apply the worker's changes via Edit tool
 
 ### When NOT to delegate

@@ -34,7 +34,7 @@ Then paste your API key into the `api_key` field of the relevant provider in [co
 Test:
 ```powershell
 coworker-config show
-ask-kimi --paths setup.ps1 --question "what does this script do?"
+ask --paths setup.ps1 --question "what does this script do?"
 ```
 
 ## CLAUDE.md Setup
@@ -100,11 +100,11 @@ Any OpenAI-compatible endpoint works.
 
 ## Tools
 
-### ask-kimi — bulk reading
+### ask — bulk reading
 Delegate bulk reading to the worker model. Returns structured bullets, not prose.
 
 ```bash
-ask-kimi \
+ask \
   --paths auth.py database.py utils.py \
   --question "Identify all unvalidated inputs" \
   --max-tokens 8192
@@ -117,11 +117,11 @@ Flags:
 - `--provider`: Override active provider for this call
 - `--model`: Override model id
 
-### kimi-write — boilerplate generation
+### write — boilerplate generation
 Generate code or documentation using an existing file as a style reference.
 
 ```bash
-kimi-write \
+write \
   --spec "Write pytest tests for auth.py covering OAuth2 flow" \
   --context tests/test_main.py \
   --target tests/test_auth.py
@@ -132,7 +132,7 @@ Flags:
 - `--context`: Reference file to mimic (style, imports, structure)
 - `--target`: Output file path
 - `--max-tokens`: Token budget for reasoning + output (default 16384)
-- `--provider`, `--model`: Same as `ask-kimi`
+- `--provider`, `--model`: Same as `ask`
 
 ### extract-chat — chat transcript extraction
 Convert Claude Code JSONL session logs to human-readable text. Stdlib only — works regardless of which provider is active.
@@ -144,9 +144,9 @@ extract-chat ~/.claude/projects/my-project/session.jsonl
 # Write to file
 extract-chat session.jsonl -o chat.txt
 
-# Pipe to ask-kimi for doc updates
+# Pipe to ask for doc updates
 extract-chat session.jsonl -o chat.txt && \
-  ask-kimi --paths chat.txt docs/README.md --question "What doc updates are needed?"
+  ask --paths chat.txt docs/README.md --question "What doc updates are needed?"
 ```
 
 ### coworker-config — switch providers
