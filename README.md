@@ -27,7 +27,15 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 `setup.ps1` creates an isolated venv at `%LOCALAPPDATA%\claude-coworker\venv`, installs `openai` + `PySide6` + `requests`, and drops `.cmd` shims (`ask`, `write`, `extract-chat`, `coworker-config`, `token-monitor`) into `%USERPROFILE%\.local\bin` (added to your User PATH if missing).
 
-Then paste your API key into the `api_key` field of the relevant provider in [config.py](config.py).
+Then create your local config from the template and paste your API key into it:
+
+```powershell
+copy config.py.template config.py
+git update-index --skip-worktree config.py   # so your keys never get committed
+notepad config.py
+```
+
+`config.py` is tracked in the repo with empty keys; the `skip-worktree` flag tells git to ignore your local edits to it. Undo later with `git update-index --no-skip-worktree config.py`.
 
 Test the worker:
 ```powershell
@@ -134,7 +142,7 @@ Built-in profiles:
 | `kimi`              | Kimi (Moonshot AI)            | `kimi-k2.5`          |
 | `ollama`            | Ollama (local)                | `qwen2.5-coder:14b`  |
 
-API keys are stored in the `api_key` field of each provider in [config.py](config.py). Paste your key in directly — no env vars required.
+API keys are stored in the `api_key` field of each provider in [config.py](config.py) (created from [config.py.template](config.py.template) on first install). Paste your key in directly — no env vars required.
 
 ### Adding a new provider
 
