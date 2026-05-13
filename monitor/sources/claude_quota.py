@@ -25,10 +25,50 @@ except ImportError:
     requests = None  # type: ignore
 
 CREDENTIALS_PATH = pathlib.Path.home() / ".claude" / ".credentials.json"
-DESKTOP_CONFIG_PATH = pathlib.Path(
-    os.environ.get("APPDATA", "")) / "Claude" / "config.json"
-DESKTOP_LOCAL_STATE_PATH = pathlib.Path(
-    os.environ.get("APPDATA", "")) / "Claude" / "Local State"
+
+
+def _desktop_search_dirs() -> list[pathlib.Path]:
+    """Directories that may contain Claude Desktop's config.json + Local State.
+
+    Claude Desktop is shipped as an MSIX-packaged app on Windows 11, which
+    redirects all %APPDATA% writes into a per-package private LocalCache.
+    We probe the standard location first (works for non-MSIX installs and
+    older builds), then glob the MSIX Packages directory for any
+    Claude_*\\LocalCache\\Roaming\\Claude folder.
+    """
+    dirs: list[pathlib.Path] = []
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        dirs.append(pathlib.Path(appdata) / "Claude")
+    localappdata = os.environ.get("LOCALAPPDATA")
+    if localappdata:
+        pkgs = pathlib.Path(localappdata) / "Packages"
+        try:
+            for pkg in pkgs.glob("Claude_*"):
+                candidate = pkg / "LocalCache" / "Roaming" / "Claude"
+                if candidate.exists():
+                    dirs.append(candidate)
+        except OSError:
+            pass
+    return dirs
+
+
+# Exposed for diagnostic scripts; resolved on import so the first existing
+# pair stays consistent across calls. Falls back to the legacy paths if none
+# of the candidates exist yet (so the values are never None).
+def _resolve_desktop_paths() -> tuple[pathlib.Path, pathlib.Path]:
+    for d in _desktop_search_dirs():
+        cfg = d / "config.json"
+        ls = d / "Local State"
+        if cfg.exists() and ls.exists():
+            return cfg, ls
+    # Default to the legacy %APPDATA%\Claude paths if nothing matched —
+    # callers will see exists()==False and skip the desktop bearer branch.
+    appdata = pathlib.Path(os.environ.get("APPDATA", ""))
+    return appdata / "Claude" / "config.json", appdata / "Claude" / "Local State"
+
+
+DESKTOP_CONFIG_PATH, DESKTOP_LOCAL_STATE_PATH = _resolve_desktop_paths()
 USAGE_URL = "https://api.anthropic.com/api/oauth/usage"
 MESSAGES_URL = "https://api.anthropic.com/v1/messages"
 MODEL_FALLBACKS = ("claude-haiku-4-5-20251001", "claude-3-haiku-20240307")
