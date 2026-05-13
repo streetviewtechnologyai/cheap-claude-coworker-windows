@@ -15,15 +15,16 @@ from .icon import abbrev
 def _fmt_remaining(iso_ts: str | None) -> str:
     if not iso_ts:
         return ""
-    raw = iso_ts.rstrip("Z")
-    for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):
-        try:
-            target = datetime.strptime(raw, fmt).replace(tzinfo=timezone.utc)
-            break
-        except ValueError:
-            continue
-    else:
+    # Accept anything ISO 8601: with/without fractional seconds, trailing Z,
+    # or +00:00 / +0000 offsets. The /api/oauth/usage body uses +00:00,
+    # the /v1/messages headers path normalizes to ...Z.
+    raw = iso_ts.replace("Z", "+00:00")
+    try:
+        target = datetime.fromisoformat(raw)
+    except ValueError:
         return ""
+    if target.tzinfo is None:
+        target = target.replace(tzinfo=timezone.utc)
     delta = target - datetime.now(timezone.utc)
     secs = int(delta.total_seconds())
     if secs <= 0:
