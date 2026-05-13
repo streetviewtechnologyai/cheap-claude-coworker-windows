@@ -184,7 +184,7 @@ def _parse_oauth_body(body: dict) -> Quota:
 
 
 def _pct_from_obj(obj: dict) -> float | None:
-    for k in ("percentage", "used_pct", "usage_percentage"):
+    for k in ("utilization", "percentage", "used_pct", "usage_percentage"):
         if k in obj and obj[k] is not None:
             try:
                 v = float(obj[k])

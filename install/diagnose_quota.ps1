@@ -22,6 +22,46 @@ for d in cq._desktop_search_dirs():
 print('Resolved config: ', cq.DESKTOP_CONFIG_PATH, ' exists=', cq.DESKTOP_CONFIG_PATH.exists())
 print('Resolved LS:     ', cq.DESKTOP_LOCAL_STATE_PATH, ' exists=', cq.DESKTOP_LOCAL_STATE_PATH.exists())
 
+print()
+print('=== bearer probe ===')
+# Step-by-step replay of _bearer_from_desktop() so we see which line breaks.
+try:
+    import win32crypt
+    print('  win32crypt: OK')
+except ImportError as e:
+    print('  win32crypt MISSING:', e, '-> run: pip install pywin32')
+try:
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    print('  cryptography (AESGCM): OK')
+except ImportError as e:
+    print('  cryptography MISSING:', e, '-> run: pip install cryptography')
+
+import json, base64
+try:
+    ls_text = cq.DESKTOP_LOCAL_STATE_PATH.read_text(encoding='utf-8')
+    ls = json.loads(ls_text)
+    print('  Local State JSON: OK, top-level keys:', list(ls.keys())[:10])
+    enc_key_b64 = ls.get('os_crypt', {}).get('encrypted_key')
+    print('  os_crypt.encrypted_key present:', bool(enc_key_b64))
+    if enc_key_b64:
+        enc_key = base64.b64decode(enc_key_b64)
+        print('  encrypted_key prefix:', enc_key[:5])
+except Exception as e:
+    print('  Local State READ/PARSE FAILED:', type(e).__name__, e)
+
+try:
+    cfg_text = cq.DESKTOP_CONFIG_PATH.read_text(encoding='utf-8')
+    cfg = json.loads(cfg_text)
+    print('  config.json keys:', sorted(k for k in cfg.keys() if 'oauth' in k.lower() or 'token' in k.lower() or 'auth' in k.lower())[:10])
+    blob_b64 = cfg.get('oauth:tokenCache', '')
+    print('  oauth:tokenCache present:', bool(blob_b64), 'length:', len(blob_b64))
+    if blob_b64:
+        blob = base64.b64decode(blob_b64)
+        print('  blob prefix:', blob[:3])
+except Exception as e:
+    print('  config.json READ/PARSE FAILED:', type(e).__name__, e)
+
+print()
 tok = cq._bearer()
 print('bearer found:', bool(tok), 'length:', len(tok) if tok else 0)
 if not tok:

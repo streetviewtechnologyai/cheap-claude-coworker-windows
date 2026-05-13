@@ -1,2 +1,6 @@
 PySide6>=6.6
 requests>=2.31
+# Needed to read Claude Desktop's OAuth bearer for quota fetches:
+# Electron's safeStorage wraps an AES-256-GCM key with DPAPI on Windows.
+pywin32>=306
+cryptography>=42
