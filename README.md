@@ -17,7 +17,9 @@ For Linux/macOS, use the upstream repo.
 
 ## Quick Start (Windows 11)
 
-Run from a normal PowerShell window:
+> ⚠️ **Important — do not run `setup.ps1` or `pip install` from inside Claude Code Desktop's built-in terminal.** Claude Code Desktop is an MSIX app, and the OS silently redirects its writes to `%LOCALAPPDATA%` into a per-app private cache. The redirected venv is invisible to Task Scheduler, scripts launched at sign-in, and any process outside the sandbox. Symptoms include `ModuleNotFoundError: No module named 'PySide6'` even though `pip list` shows it installed. Always use a regular PowerShell window (Win+X → Terminal) for setup and any later `pip install`.
+
+Run from a **regular** PowerShell window:
 
 ```powershell
 git clone https://github.com/streetviewtechnologyai/cheap-claude-coworker-windows.git
@@ -48,11 +50,19 @@ Launch the token monitor:
 token-monitor
 ```
 
-To launch automatically at sign-in:
+To launch automatically at sign-in (recommended — Task Scheduler with a 30 s delay so the shell tray is fully ready before the icon registers):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install\install_scheduled_task.ps1
+```
+
+The scheduled task wraps the monitor in [install/launch_monitor.ps1](install/launch_monitor.ps1), which captures the monitor's stderr to `%LOCALAPPDATA%\claude-coworker\monitor.stderr.log` so any silent startup failure leaves a stack trace.
+
+Legacy Startup-folder shortcut alternative (less reliable on Windows 11):
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install\install_startup.ps1
 ```
-or right-click the tray icon → **Start with Windows**.
+
+To uninstall the scheduled task: `Unregister-ScheduledTask -TaskName TokenMonitor -Confirm:$false`
 
 ## CLAUDE.md Setup
 
