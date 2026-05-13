@@ -108,7 +108,7 @@ Right-click the tray icon for:
 - **Reset session counter** / **Reset widget position**
 - **Open coworker log**
 - **Pause polling**
-- **Show only with Claude focused** (default on — widget hides when other apps are active; shell windows are transparent)
+- **Show only with Claude focused** (default on — widget hides when other apps are active. True shell surfaces — taskbar, tray flyout, desktop, Start menu — are transparent, so clicking the tray chevron with Claude focused doesn't flicker the widget. File Explorer folder windows are detected by window class (`CabinetWClass`) and treated as regular apps, so alt-tabbing to a folder hides the widget.)
 - **Plan** — Pro / Max 5× / Max 20× / Teams / Enterprise / API. Subscription plans hide the per-token list-price total since it's not what you actually pay; tooltip still shows the API-equivalent.
 - **Theme** — System (default, follows Windows) / Light / Dark
 - **Start with Windows** / **Quit**

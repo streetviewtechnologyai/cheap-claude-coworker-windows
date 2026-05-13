@@ -11,6 +11,8 @@ _kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
 _user32.GetForegroundWindow.restype = wintypes.HWND
 _user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
 _user32.GetWindowThreadProcessId.restype = wintypes.DWORD
+_user32.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+_user32.GetClassNameW.restype = ctypes.c_int
 
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 
@@ -41,15 +43,28 @@ def _exe_from_pid(pid: int) -> str:
         _kernel32.CloseHandle(handle)
 
 
+def _class_from_hwnd(hwnd: int) -> str:
+    buf = ctypes.create_unicode_buffer(256)
+    n = _user32.GetClassNameW(hwnd, buf, len(buf))
+    return buf.value if n > 0 else ""
+
+
 def foreground_exe() -> str:
     """Return basename of the currently focused process, lowercased.
     Returns '' if it can't be determined."""
+    exe, _ = foreground_info()
+    return exe
+
+
+def foreground_info() -> tuple[str, str]:
+    """Return (exe_basename_lower, window_class) of the foreground window.
+    Both empty strings if it can't be determined."""
     hwnd = _user32.GetForegroundWindow()
     if not hwnd:
-        return ""
+        return "", ""
     pid = wintypes.DWORD()
     _user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
     if not pid.value:
-        return ""
-    return _exe_from_pid(pid.value)
+        return "", _class_from_hwnd(hwnd)
+    return _exe_from_pid(pid.value), _class_from_hwnd(hwnd)
 

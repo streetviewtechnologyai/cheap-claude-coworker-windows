@@ -8,7 +8,7 @@ from PySide6.QtCore import QSettings, QTimer
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon
 
 from .aggregator import Aggregator
-from .foreground import foreground_exe
+from .foreground import foreground_info
 from .tray import TrayController
 from .widget import TaskbarWidget
 
@@ -21,6 +21,10 @@ _FOLLOW_EXES = {"claude.exe"}
 _SHELL_EXES = {"explorer.exe", "applicationframehost.exe",
                "shellexperiencehost.exe", "startmenuexperiencehost.exe",
                "searchhost.exe", "textinputhost.exe"}
+# File Explorer windows live under explorer.exe but have this window class.
+# Treat them as regular apps so the widget hides when the user alt-tabs to
+# a folder window — but stays put for the actual shell (tray, desktop, Start).
+_FILE_EXPLORER_CLASSES = {"CabinetWClass"}
 # After an explicit show, hold the widget visible for this many seconds.
 _GRACE_AFTER_SHOW_S = 3.0
 # How many consecutive non-Claude foreground samples before we hide. With a
@@ -79,16 +83,19 @@ def main() -> int:
         cmenu = tray.tray.contextMenu()
         if cmenu is not None and cmenu.isVisible():
             return
-        exe = foreground_exe()
+        exe, cls = foreground_info()
         # Three-way decision:
         #  - claude / our own widget   → show
         #  - shell (explorer, hosts)   → preserve current visibility
         #  - anything else             → hide (after dwell)
+        # explorer.exe is special: File Explorer folder windows (CabinetWClass)
+        # are real apps and should hide the widget; only true shell windows
+        # (tray, desktop, Start) remain transparent.
         if exe in _FOLLOW_EXES or exe.startswith("python"):
             miss_count[0] = 0
             if not widget.isVisible():
                 widget.show()
-        elif exe in _SHELL_EXES:
+        elif exe in _SHELL_EXES and cls not in _FILE_EXPLORER_CLASSES:
             return  # transparent
         else:
             miss_count[0] += 1
