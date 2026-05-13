@@ -98,11 +98,25 @@ A tray icon shows an abbreviated session token count (`12k`, `1.2M`) with the ba
 
 `monitor/sources/claude_quota.py`:
 1. Reads the OAuth bearer from Claude Code CLI's plain-text `~/.claude/.credentials.json` if present.
-2. Otherwise decrypts Claude Code Desktop's bearer from `%APPDATA%\Claude\config.json` (Electron safeStorage: AES-256-GCM with a DPAPI-wrapped key).
-3. Tries `GET https://api.anthropic.com/api/oauth/usage` first.
+2. Otherwise decrypts Claude Code Desktop's bearer. The path is auto-detected:
+   - `%APPDATA%\Claude\config.json` for non-MSIX (legacy) installs.
+   - `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\config.json` for the Windows 11 MSIX-packaged build of Claude Code Desktop (the OS redirects `%APPDATA%` writes into the package's private LocalCache).
+   - Both formats use Electron safeStorage: AES-256-GCM with a DPAPI-wrapped key, stored in the sibling `Local State` file. The decrypt requires `pywin32` + `cryptography`, both in `requirements-monitor.txt`.
+3. Tries `GET https://api.anthropic.com/api/oauth/usage` first — the body now uses `{"five_hour": {"utilization": 38.0, "resets_at": "..."}}`.
 4. Falls back to a 1-token `POST /v1/messages` and reads `anthropic-ratelimit-unified-{5h,7d}-utilization` response headers (the same channel Claude Code Desktop uses).
 
 Polling is throttled to once per 5 minutes so it doesn't burn meaningful tokens.
+
+### Troubleshooting the Claude 5h / 7d rows
+
+If the rows show raw token counts like `1.6M tok` instead of `38% · resets 1h 12m`, the OAuth bearer lookup is failing. Run the diagnostic from a **regular PowerShell** (NOT from inside Claude Code Desktop — its sandbox would hide the real credential files):
+
+```powershell
+cd "C:\Users\<you>\Documents\...\cheap-claude-coworker-windows"
+powershell -ExecutionPolicy Bypass -File .\install\diagnose_quota.ps1
+```
+
+It walks each step of the bearer decrypt and the two API calls, so the failure pinpoints itself: missing module, missing/encrypted-key/oauth:tokenCache field, decrypt failure, HTTP status, or stripped rate-limit headers.
 
 ### Worker spend
 
