@@ -1,3 +1,7 @@
+# Chewap Claude Coworker + Token Monitor (Windows 11)
+
+![Token Monitor widget](images/token-monitor-widget.png)
+
 ## Quick Start (Windows 11)
 
 Run from a **regular** PowerShell window:
