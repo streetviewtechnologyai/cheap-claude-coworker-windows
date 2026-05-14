@@ -1,27 +1,8 @@
-# Claude Coworker + Token Monitor (Windows 11)
-
-![Token Monitor widget](images/token-monitor-widget.png)
-
-A Windows 11 fork of [imkunal007219/claude-coworker-model](https://github.com/imkunal007219/claude-coworker-model) that **offloads bulk I/O from Claude Code to a cheap LLM** (DeepSeek / Kimi / local Ollama) — plus a **taskbar token monitor** that shows live Claude 5h/7d quota usage and worker spend side by side.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Platform: Windows 11](https://img.shields.io/badge/platform-Windows%2011-blue)
-
-Differences from upstream:
-- Windows-only (`setup.ps1`, `.cmd` shims, UTF-8 stdout fix for cp1252).
-- Provider profiles in `config.py` instead of `WORKER_*` environment variables.
-- DeepSeek V4 Flash/Pro alongside Kimi and Ollama; DeepSeek V4 Flash as default.
-- **New:** `monitor/` — a PySide6 tray + taskbar widget showing live Claude / worker token usage.
-
-For Linux/macOS, use the upstream repo.
-
 ## Quick Start (Windows 11)
-
-> ⚠️ **Important — do not run `setup.ps1` or `pip install` from inside Claude Code Desktop's built-in terminal.** Claude Code Desktop is an MSIX app, and the OS silently redirects its writes to `%LOCALAPPDATA%` into a per-app private cache. The redirected venv is invisible to Task Scheduler, scripts launched at sign-in, and any process outside the sandbox. Symptoms include `ModuleNotFoundError: No module named 'PySide6'` even though `pip list` shows it installed. Always use a regular PowerShell window (Win+X → Terminal) for setup and any later `pip install`.
 
 Run from a **regular** PowerShell window:
 
-```powershell
+```
 git clone https://github.com/streetviewtechnologyai/cheap-claude-coworker-windows.git
 cd cheap-claude-coworker-windows
 powershell -ExecutionPolicy Bypass -File .\setup.ps1
@@ -29,9 +10,10 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 `setup.ps1` creates an isolated venv at `%LOCALAPPDATA%\claude-coworker\venv`, installs `openai` + `PySide6` + `requests`, and drops `.cmd` shims (`ask`, `write`, `extract-chat`, `coworker-config`, `token-monitor`) into `%USERPROFILE%\.local\bin` (added to your User PATH if missing).
 
-Then create your local config from the template and paste your API key into it:
+Then create your local config from the template and **paste your API key** into it:
 
-```powershell
+Run from a **regular** PowerShell window:
+```
 copy config.py.template config.py
 git update-index --skip-worktree config.py   # so your keys never get committed
 notepad config.py
@@ -40,25 +22,29 @@ notepad config.py
 `config.py` is tracked in the repo with empty keys; the `skip-worktree` flag tells git to ignore your local edits to it. Undo later with `git update-index --no-skip-worktree config.py`.
 
 Test the worker:
-```powershell
+Run from a **regular** PowerShell window:
+```
 coworker-config show
 ask --paths setup.ps1 --question "what does this script do?"
 ```
 
 Launch the token monitor:
-```powershell
+Run from a **regular** PowerShell window:
+```
 token-monitor
 ```
 
 To launch automatically at sign-in (recommended — Task Scheduler with a 30 s delay so the shell tray is fully ready before the icon registers):
-```powershell
+Run from a **regular** PowerShell window:
+```
 powershell -ExecutionPolicy Bypass -File .\install\install_scheduled_task.ps1
 ```
 
 The scheduled task wraps the monitor in [install/launch_monitor.ps1](install/launch_monitor.ps1), which captures the monitor's stderr to `%LOCALAPPDATA%\claude-coworker\monitor.stderr.log` so any silent startup failure leaves a stack trace.
 
 Legacy Startup-folder shortcut alternative (less reliable on Windows 11):
-```powershell
+Run from a **regular** PowerShell window:
+```
 powershell -ExecutionPolicy Bypass -File .\install\install_startup.ps1
 ```
 
@@ -280,3 +266,22 @@ The token monitor's quota-fetch flow (Claude Desktop credential decode + `/v1/me
 PRs welcome. Focus areas: additional provider templates, monitor caps for new plan tiers, and extracting structured data from more session formats.
 
 MIT License. See [LICENSE](LICENSE).
+
+# Claude Coworker + Token Monitor (Windows 11)
+
+![Token Monitor widget](images/token-monitor-widget.png)
+
+A Windows 11 fork of [imkunal007219/claude-coworker-model](https://github.com/imkunal007219/claude-coworker-model) that **offloads bulk I/O from Claude Code to a cheap LLM** (DeepSeek / Kimi / local Ollama) — plus a **taskbar token monitor** that shows live Claude 5h/7d quota usage and worker spend side by side.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Platform: Windows 11](https://img.shields.io/badge/platform-Windows%2011-blue)
+
+> ⚠️ **Important — do not run `setup.ps1` or `pip install` from inside Claude Code Desktop's built-in terminal.** Claude Code Desktop is an MSIX app, and the OS silently redirects its writes to `%LOCALAPPDATA%` into a per-app private cache. The redirected venv is invisible to Task Scheduler, scripts launched at sign-in, and any process outside the sandbox. Symptoms include `ModuleNotFoundError: No module named 'PySide6'` even though `pip list` shows it installed. Always use a regular PowerShell window (Win+X → Terminal) for setup and any later `pip install`.
+
+Differences from upstream:
+- Windows-only (`setup.ps1`, `.cmd` shims, UTF-8 stdout fix for cp1252).
+- Provider profiles in `config.py` instead of `WORKER_*` environment variables.
+- DeepSeek V4 Flash/Pro alongside Kimi and Ollama; DeepSeek V4 Flash as default.
+- **New:** `monitor/` — a PySide6 tray + taskbar widget showing live Claude / worker token usage.
+
+For Linux/macOS, use the upstream repo.
